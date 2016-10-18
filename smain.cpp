@@ -1,33 +1,56 @@
 #include <qsqldriverplugin.h>
-#include <qstringlist.h>
-#include "qt-private/qsql_sqlite_p.h"
+#include <qstringlist.h>                                                                                                                           
+#include "qsql_sqlite.h"
 
 QT_BEGIN_NAMESPACE
 
-class QSQLCipherDriverPlugin : public QSqlDriverPlugin
+/*
+ * Change the driver name if you like.
+ */
+static const char DriverName[] = "SQLITECIPHER";
+
+class SqliteCipherDriverPlugin : public QSqlDriverPlugin
 {
+#if (QT_VERSION >= 0x050000)
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QSqlDriverFactoryInterface" FILE "sqlcipher.json")
-
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QSqlDriverFactoryInterface" FILE "sqlitecipher.json")
+#endif
 public:
-    QSQLCipherDriverPlugin();
-
-    QSqlDriver* create(const QString &) Q_DECL_OVERRIDE;
+    SqliteCipherDriverPlugin();
+ 
+    QSqlDriver* create(const QString &);
+#if (QT_VERSION < 0x050000)
+    QStringList keys() const;
+#endif
 };
 
-QSQLCipherDriverPlugin::QSQLCipherDriverPlugin()
+SqliteCipherDriverPlugin::SqliteCipherDriverPlugin()
     : QSqlDriverPlugin()
 {
 }
 
-QSqlDriver* QSQLCipherDriverPlugin::create(const QString &name)
+QSqlDriver* SqliteCipherDriverPlugin::create(const QString &name)
 {
-    if (name == QLatin1String("QSQLCIPHER")) {
+    if (name == QLatin1String(DriverName)) {
         QSQLiteDriver* driver = new QSQLiteDriver();
         return driver;
     }
     return 0;
 }
+
+#if (QT_VERSION < 0x050000)
+QStringList SqliteCipherDriverPlugin::keys() const
+{
+    QStringList l;
+    l  << QLatin1String(DriverName);
+    return l;
+}
+#endif
+
+#if (QT_VERSION < 0x050000)
+Q_EXPORT_STATIC_PLUGIN(SqliteCipherDriverPlugin)
+Q_EXPORT_PLUGIN2(qsqlite, SqliteCipherDriverPlugin)
+#endif
 
 QT_END_NAMESPACE
 
